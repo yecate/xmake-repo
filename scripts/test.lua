@@ -18,6 +18,7 @@ local options =
 ,   {nil, "ldflags",    "kv", nil, "Set the ldflags."                           }
 ,   {nil, "ndk",        "kv", nil, "Set the android NDK directory."             }
 ,   {nil, "sdk",        "kv", nil, "Set the SDK directory of cross toolchain."  }
+,   {nil, "vs_sdkver",  "kv", nil, "Set the Windows SDK version."               }
 ,   {nil, "mingw",      "kv", nil, "Set the MingW directory."                   }
 ,   {nil, "packages",   "vs", nil, "The package list."                          }
 }
@@ -46,6 +47,9 @@ function _require_packages(argv, packages)
     end
     if argv.sdk then
         table.insert(config_argv, "--sdk=" .. argv.sdk)
+    end
+    if argv.vs_sdkver then
+        table.insert(config_argv, "--vs_sdkver=" .. argv.vs_sdkver)
     end
     if argv.mingw then
         table.insert(config_argv, "--mingw=" .. argv.mingw)
@@ -85,7 +89,7 @@ end
 function _package_is_supported(argv, packagename)
     local packages = get_packages()
     if packages then
-        local plat = argv.plat or os.host()
+        local plat = argv.plat or os.subhost()
         local packages_plat = packages[plat]
         for _, package in ipairs(packages_plat) do
             if package and packagename:split("%s+")[1] == package.name then
@@ -128,7 +132,7 @@ function main(...)
         end
     end
     if #packages == 0 then
-        print("no testable packages on %s!", argv.plat or os.host())
+        print("no testable packages on %s!", argv.plat or os.subhost())
         return
     end
 

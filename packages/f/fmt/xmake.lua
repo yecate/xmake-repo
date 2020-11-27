@@ -24,7 +24,6 @@ package("fmt")
     end)
 
     on_install(function (package)
-        print("fmt", package:config("cmake"))
         if package:config("header_only") and not package:config("cmake") then
             os.cp("include/fmt", package:installdir("include"))
             return
@@ -32,6 +31,7 @@ package("fmt")
 
         local configs = {}
         table.insert(configs, "-DBUILD_SHARED_LIBS=" .. (package:config("shared") and "ON" or "OFF"))
+        table.insert(configs, "-DCMAKE_BUILD_TYPE=" .. (package:debug() and "Debug" or "Release"))
         table.insert(configs, "-DFMT_TEST=OFF")
         table.insert(configs, "-DFMT_DOC=OFF")
         table.insert(configs, "-DFMT_FUZZ=OFF")

@@ -21,14 +21,25 @@ package("libcurl")
         add_frameworks("Security", "CoreFoundation")
     elseif is_plat("linux") then
         add_syslinks("pthread")
+    elseif is_plat("windows", "mingw") then
+        add_syslinks("advapi32", "winmm", "ws2_32")
     end
+
+    on_load("windows", "mingw@macosx,linux", function (package)
+        if not package:config("shared") then
+            package:add("defines", "CURL_STATICLIB")
+        end
+    end)
 
     on_install("windows", function (package)
         local configs = {"-DBUILD_TESTING=OFF"}
+        table.insert(configs, "-DBUILD_SHARED_LIBS=" .. (package:config("shared") and "ON" or "OFF"))
+        table.insert(configs, "-DCMAKE_BUILD_TYPE=" .. (package:debug() and "Debug" or "Release"))
+        table.insert(configs, "-DCURL_DISABLE_LDAP=ON")
         import("package.tools.cmake").install(package, configs)
     end)
 
-    on_install("macosx", "linux", "iphoneos", function (package)
+    on_install("macosx", "linux", "iphoneos", "mingw@macosx,linux", "cross", function (package)
         local configs = {"--disable-silent-rules", "--disable-dependency-tracking"}
         if package:debug() then
             table.insert(configs, "--enable-debug")
